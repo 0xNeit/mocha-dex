@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.8.17;
+pragma solidity ^0.8.20;
 
 import "./ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -89,9 +89,9 @@ abstract contract DelegatERC20 is ERC20 {
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
 
         address signatory = ecrecover(digest, v, r, s);
-        require(signatory != address(0), "KswapToken::delegateBySig: invalid signature");
-        require(nonce == nonces[signatory]++, "KswapToken::delegateBySig: invalid nonce");
-        require(block.timestamp <= expiry, "KswapToken::delegateBySig: signature expired");
+        require(signatory != address(0), "MochaToken::delegateBySig: invalid signature");
+        require(nonce == nonces[signatory]++, "MochaToken::delegateBySig: invalid nonce");
+        require(block.timestamp <= expiry, "MochaToken::delegateBySig: signature expired");
         return _delegate(signatory, delegatee);
     }
 
@@ -113,7 +113,7 @@ abstract contract DelegatERC20 is ERC20 {
      * @return The number of votes the account had as of the given block
      */
     function getPriorVotes(address account, uint256 blockNumber) external view returns (uint256) {
-        require(blockNumber < block.number, "KswapToken::getPriorVotes: not yet determined");
+        require(blockNumber < block.number, "MochaToken::getPriorVotes: not yet determined");
 
         uint32 nCheckpoints = numCheckpoints[account];
         if (nCheckpoints == 0) {
@@ -186,7 +186,7 @@ abstract contract DelegatERC20 is ERC20 {
         uint256 oldVotes,
         uint256 newVotes
     ) internal {
-        uint32 blockNumber = safe32(block.number, "KswapToken::_writeCheckpoint: block number exceeds 32 bits");
+        uint32 blockNumber = safe32(block.number, "MochaToken::_writeCheckpoint: block number exceeds 32 bits");
 
         if (nCheckpoints > 0 && checkpoints[delegatee][nCheckpoints - 1].fromBlock == blockNumber) {
             checkpoints[delegatee][nCheckpoints - 1].votes = newVotes;
@@ -236,12 +236,12 @@ contract MochaToken is DelegatERC20, Ownable {
     }
 
     function addMinter(address _addMinter) public onlyOwner returns (bool) {
-        require(_addMinter != address(0), "KswapToken: _addMinter is the zero address");
+        require(_addMinter != address(0), "MochaToken: _addMinter is the zero address");
         return EnumerableSet.add(_minters, _addMinter);
     }
 
     function delMinter(address _delMinter) public onlyOwner returns (bool) {
-        require(_delMinter != address(0), "KswapToken: _delMinter is the zero address");
+        require(_delMinter != address(0), "MochaToken: _delMinter is the zero address");
         return EnumerableSet.remove(_minters, _delMinter);
     }
 
@@ -254,7 +254,7 @@ contract MochaToken is DelegatERC20, Ownable {
     }
 
     function getMinter(uint256 _index) public view onlyOwner returns (address) {
-        require(_index <= getMinterLength() - 1, "KswapToken: index out of bounds");
+        require(_index <= getMinterLength() - 1, "MochaToken: index out of bounds");
         return EnumerableSet.at(_minters, _index);
     }
 
