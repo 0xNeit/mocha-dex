@@ -76,27 +76,27 @@ contract MochaTreasury is Ownable {
     }
 
     function setNftBonusRatio(uint256 _ratio) public onlyOwner {
-        require(_ratio > 0 && _ratio < 100, "KSwapTreasury: ratio is out of range");
+        require(_ratio > 0 && _ratio < 100, "MochaTreasury: ratio is out of range");
         nftBonusRatio = _ratio;
     }
 
     function setInvestorRatio(uint256 _ratio) public onlyOwner {
-        require(_ratio > 0 && _ratio < 100, "KSwapTreasury: ratio is out of range");
+        require(_ratio > 0 && _ratio < 100, "MochaTreasury: ratio is out of range");
         investorRatio = _ratio;
     }
 
     function setEmergencyAddress(address _newAddress) public onlyOwner {
-        require(_newAddress != address(0), "KSwapTreasury: address is zero");
+        require(_newAddress != address(0), "MochaTreasury: address is zero");
         emergencyAddress = _newAddress;
     }
 
     function setInvestorAddress(address _newAddress) public onlyOwner {
-        require(_newAddress != address(0), "KSwapTreasury: address is zero");
+        require(_newAddress != address(0), "MochaTreasury: address is zero");
         investor = _newAddress;
     }
 
     function setNftBonusAddress(address _newAddress) public onlyOwner {
-        require(_newAddress != address(0), "KSwapTreasury: address is zero");
+        require(_newAddress != address(0), "MochaTreasury: address is zero");
         nftBonus = _newAddress;
     }
 
@@ -141,7 +141,7 @@ contract MochaTreasury is Ownable {
     }
 
     function swap(address _token0, address _token1) external onlyCaller {
-        require(isStableCoin(_token0) || isStableCoin(_token1), "KSwapTreasury: must has a stable coin");
+        require(isStableCoin(_token0) || isStableCoin(_token1), "MochaTreasury: must has a stable coin");
 
         (address token0, address token1) = MochaLibrary.sortTokens(_token0, _token1);
         (uint256 amount0, uint256 amount1) = _removeLiquidity(token0, token1);
@@ -165,7 +165,7 @@ contract MochaTreasury is Ownable {
     }
 
     function distribute(uint256 _amount) external onlyCaller {
-        require(_amount < IERC20(USDT).balanceOf(address(this)), "KSwapTreasury: amount exceeds balance of contract");
+        require(_amount < IERC20(USDT).balanceOf(address(this)), "MochaTreasury: amount exceeds balance of contract");
         uint256 _teamAmount = _amount + (investorRatio) / (100);
         uint256 _nftBonusAmount = _amount * (nftBonusRatio) / (100);
         uint256 _repurchasedAmount = _amount - (_teamAmount) - (_nftBonusAmount);
@@ -179,13 +179,13 @@ contract MochaTreasury is Ownable {
     }
 
     function sendToNftPool(uint256 _amount) external onlyCaller {
-        require(_amount < nftBonusAmount, "KSwapTreasury: amount exceeds nft bonus amount");
+        require(_amount < nftBonusAmount, "MochaTreasury: amount exceeds nft bonus amount");
         IERC20(USDT).safeTransfer(investor, _amount);
         emit NFTPoolTransfer(nftBonus, _amount);
     }
 
     function repurchase(uint256 _amountIn) internal returns (uint256 amountOut) {
-        require(IERC20(USDT).balanceOf(address(this)) >= _amountIn, "KSwapTreasury: amount is less than USDT balance");
+        require(IERC20(USDT).balanceOf(address(this)) >= _amountIn, "MochaTreasury: amount is less than USDT balance");
 
         amountOut = _swap(USDT, MCH, _amountIn, destroyAddress);
 
@@ -194,17 +194,17 @@ contract MochaTreasury is Ownable {
     }
 
     function emergencyWithdraw(address _token) public onlyOwner {
-        require(IERC20(_token).balanceOf(address(this)) > 0, "KSwapTreasury: insufficient contract balance");
+        require(IERC20(_token).balanceOf(address(this)) > 0, "MochaTreasury: insufficient contract balance");
         IERC20(_token).transfer(emergencyAddress, IERC20(_token).balanceOf(address(this)));
     }
 
     function addCaller(address _newCaller) public onlyOwner returns (bool) {
-        require(_newCaller != address(0), "KSwapTreasury: address is zero");
+        require(_newCaller != address(0), "MochaTreasury: address is zero");
         return EnumerableSet.add(_callers, _newCaller);
     }
 
     function delCaller(address _delCaller) public onlyOwner returns (bool) {
-        require(_delCaller != address(0), "KSwapTreasury: address is zero");
+        require(_delCaller != address(0), "MochaTreasury: address is zero");
         return EnumerableSet.remove(_callers, _delCaller);
     }
 
@@ -217,17 +217,17 @@ contract MochaTreasury is Ownable {
     }
 
     function getCaller(uint256 _index) public view returns (address) {
-        require(_index <= getCallerLength() - 1, "KSwapTreasury: index out of bounds");
+        require(_index <= getCallerLength() - 1, "MochaTreasury: index out of bounds");
         return EnumerableSet.at(_callers, _index);
     }
 
     function addStableCoin(address _token) public onlyOwner returns (bool) {
-        require(_token != address(0), "KSwapTreasury: address is zero");
+        require(_token != address(0), "MochaTreasury: address is zero");
         return EnumerableSet.add(_stableCoins, _token);
     }
 
     function delStableCoin(address _token) public onlyOwner returns (bool) {
-        require(_token != address(0), "KSwapTreasury: address is zero");
+        require(_token != address(0), "MochaTreasury: address is zero");
         return EnumerableSet.remove(_stableCoins, _token);
     }
 
@@ -240,12 +240,12 @@ contract MochaTreasury is Ownable {
     }
 
     function getStableCoin(uint256 _index) public view returns (address) {
-        require(_index <= getStableCoinLength() - 1, "KSwapTreasury: index out of bounds");
+        require(_index <= getStableCoinLength() - 1, "MochaTreasury: index out of bounds");
         return EnumerableSet.at(_stableCoins, _index);
     }
 
     modifier onlyCaller() {
-        require(isCaller(msg.sender), "KSwapTreasury: not the caller");
+        require(isCaller(msg.sender), "MochaTreasury: not the caller");
         _;
     }
 }
