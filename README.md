@@ -1,8 +1,11 @@
-# Sample Hardhat Project
+# Uniswap V2 Clone Rewritten for Solidity 0.8.x with extra features
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+## NEW FEATURES
 
-Try running some of the following tasks:
+* Trading Rebates
+* Native Governance
+* On-chain Oracle
+* Treasury
 
 ```shell
 npx hardhat help
