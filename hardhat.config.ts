@@ -1,6 +1,6 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
-import { PRIVATE_KEY } from "./env";
+import { INFURA_KEY, PRIVATE_KEY } from "./env";
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -19,7 +19,7 @@ const config: HardhatUserConfig = {
   defaultNetwork: "sepolia",
   networks: {
     mainnet: {
-      url: 'https://eth.merkle.io',
+      url: `https://sepolia.infura.io/v3/${INFURA_KEY}`,
       chainId: 1,
       accounts: [PRIVATE_KEY],
     },
