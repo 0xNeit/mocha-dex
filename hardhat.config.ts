@@ -1,7 +1,6 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
-
-const PRIVATE_KEY = process.env.PRIVATE_KEY;
+import { PRIVATE_KEY } from "./env";
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -17,16 +16,17 @@ const config: HardhatUserConfig = {
     currency: "USD",
     enabled: false,
   },
+  defaultNetwork: "sepolia",
   networks: {
     mainnet: {
       url: 'https://eth.merkle.io',
       chainId: 1,
-      accounts: [`0x${PRIVATE_KEY}`],
+      accounts: [PRIVATE_KEY],
     },
     sepolia: {
       url: 'https://rpc.sepolia.org',
       chainId: 11155111,
-      accounts: [`0x${PRIVATE_KEY}`],
+      accounts: [PRIVATE_KEY],
     },
     coverage: {
       url: "http://localhost:8555",

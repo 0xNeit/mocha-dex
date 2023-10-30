@@ -28,7 +28,7 @@ library MochaLibrary {
                             hex"ff",
                             factory,
                             keccak256(abi.encodePacked(token0, token1)),
-                            hex"73fce53e0c877f17bc03bb34eead12c2c3f30d3493cff1259744d0c0dfcb3a92" // init code hash
+                            hex"43369b9bf0a5ee7895a1389a7ccdcec9ff4df7c30238bbbb1b722aee19b6ce05" // init code hash
                         )
                     )
                 )
