@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-// import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../tokens/MochaToken.sol";
 import "../interfaces/IMochaPair.sol";
@@ -19,7 +19,7 @@ interface IOracle {
     function getQuantity(address token, uint256 amount) external view returns (uint256);
 }
 
-contract TradingPool is Ownable {
+contract TradingPool is Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -47,7 +47,7 @@ contract TradingPool is Ownable {
         uint256 allocPoint; // How many allocation points assigned to this pool. mchs to distribute per block.
         uint256 lastRewardBlock; // Last block number that mchs distribution occurs.
         uint256 accMchPerShare; // Accumulated mchs per share, times 1e12.
-        uint256 quantity;
+        uint256 quantity; // LP Token Total Supply
         uint256 accQuantity;
         uint256 allocMchAmount;
         uint256 accMchAmount;
@@ -95,7 +95,6 @@ contract TradingPool is Ownable {
     // The block number when mch mining starts.
     uint256 public startBlock;
     uint256 public halvingPeriod = 3952800; // half year
-    address public _owner;
 
     event Swap(address indexed user, uint256 indexed pid, uint256 amount);
     event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
@@ -110,7 +109,10 @@ contract TradingPool is Ownable {
         uint256 _startBlock,
         address _initialOwner
     ) Ownable(_initialOwner) {
-        _owner = _initialOwner;
+        require(address(_mch) != address(0));
+        require(address(_factory) != address(0));
+        require(_router != address(0));
+        require(address(_oracle) != address(0));
         mch = _mch;
         factory = _factory;
         oracle = _oracle;
@@ -303,7 +305,27 @@ contract TradingPool is Ownable {
         return 0;
     }
 
-    function withdraw(uint256 _pid) public {
+    function pendingMchAll(address _user) external view returns (uint256) {
+        uint256 total = 0;
+        uint256 length = poolInfo.length;
+        for (uint256 _pid = 0; _pid < length; ++_pid) {
+            PoolInfo storage pool = poolInfo[_pid];
+            UserInfo storage user = userInfo[_pid][_user];
+            uint256 accMchPerShare = pool.accMchPerShare;
+            if (block.number > pool.lastRewardBlock) {
+                uint256 blockReward = getMchBlockReward(pool.lastRewardBlock);
+                uint256 mchReward = blockReward * (pool.allocPoint) / (totalAllocPoint);
+                accMchPerShare = accMchPerShare + (mchReward * (1e12) / (pool.quantity));
+                return user.pendingReward + (user.quantity * (accMchPerShare) / (1e12) - (user.rewardDebt));
+            }
+            if (block.number == pool.lastRewardBlock) {
+                return user.pendingReward + (user.quantity * (accMchPerShare) / (1e12) - (user.rewardDebt) + total);
+            }
+        }
+        return total;
+    }
+
+    function withdraw(uint256 _pid) public nonReentrant {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][tx.origin];
 
@@ -322,7 +344,7 @@ contract TradingPool is Ownable {
         emit Withdraw(tx.origin, _pid, pendingAmount);
     }
 
-    function harvestAll() public {
+    function withdrawAll() public {
         for (uint256 i = 0; i < poolInfo.length; i++) {
             withdraw(i);
         }
