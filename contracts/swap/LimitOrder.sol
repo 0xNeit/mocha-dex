@@ -41,8 +41,6 @@ contract LimitOrder is Ownable {
     IMochaRouter02 public immutable router;
     IMochaFactory public immutable factory;
 
-    address public _owner;
-
     address constant ETH = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
     mapping(address => UserInfo) userInfos;
@@ -53,7 +51,6 @@ contract LimitOrder is Ownable {
     
 
     constructor( address _router, address _receiver, address _initialOwner) Ownable(_initialOwner) {
-        _owner = _initialOwner;
         router = IMochaRouter02(_router);
         factory = IMochaFactory(router.factory());
         taskIdGenerator = 0;

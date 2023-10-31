@@ -17,13 +17,14 @@ interface ITradingPool {
         address output,
         uint256 amount
     ) external returns (bool);
+
+    function withdraw(uint256 _pid) external;
 }
 
 contract MochaRouter is IMochaRouter02, Ownable {
     address public immutable override factory;
     address public immutable override WETH;
     address public override tradingPool;
-    address public _owner;
 
     modifier ensure(uint256 deadline) {
         require(deadline >= block.timestamp, 'MochaRouter: EXPIRED');
@@ -31,7 +32,6 @@ contract MochaRouter is IMochaRouter02, Ownable {
     }
 
     constructor(address _factory, address _WETH, address initialOwner) Ownable(initialOwner) {
-        _owner = initialOwner;
         factory = _factory;
         WETH = _WETH;
     }

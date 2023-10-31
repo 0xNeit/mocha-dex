@@ -3,13 +3,13 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-// import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../tokens/MochaToken.sol";
 import "../interfaces/IMochaPair.sol";
 import "../interfaces/IAsset.sol";
 
-contract LiquidityPool is Ownable, IAsset {
+contract LiquidityPool is Ownable, IAsset, ReentrancyGuard {
     using SafeERC20 for ERC20;
 
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -83,7 +83,6 @@ contract LiquidityPool is Ownable, IAsset {
     // The block number when mch mining starts.
     uint256 public startBlock;
     uint256 public halvingPeriod = 3952800; // half year
-    address public _owner;
 
     event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
     event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
@@ -95,7 +94,6 @@ contract LiquidityPool is Ownable, IAsset {
         uint256 _startBlock,
         address _initialOwner
     ) Ownable(_initialOwner) {
-        _owner = _initialOwner;
         mch = _mch;
         mchPerBlock = _mchPerBlock;
         startBlock = _startBlock;
@@ -212,7 +210,7 @@ contract LiquidityPool is Ownable, IAsset {
         pool.lastRewardBlock = block.number;
     }
 
-    function deposit(uint256 _pid, uint256 _amount) public {
+    function deposit(uint256 _pid, uint256 _amount) public nonReentrant {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         updatePool(_pid);
@@ -254,7 +252,7 @@ contract LiquidityPool is Ownable, IAsset {
         return 0;
     }
 
-    function withdraw(uint256 _pid, uint256 _amount) public {
+    function withdraw(uint256 _pid, uint256 _amount) public nonReentrant {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][tx.origin];
         require(user.amount >= _amount, "LiquidityPool: withdraw not good");
@@ -274,13 +272,13 @@ contract LiquidityPool is Ownable, IAsset {
         emit Withdraw(tx.origin, _pid, _amount);
     }
 
-    function harvestAll() public {
+    function harvestAll() public nonReentrant {
         for (uint256 i = 0; i < poolInfo.length; i++) {
             withdraw(i, 0);
         }
     }
 
-    function emergencyWithdraw(uint256 _pid) public {
+    function emergencyWithdraw(uint256 _pid) public nonReentrant {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         uint256 amount = user.amount;

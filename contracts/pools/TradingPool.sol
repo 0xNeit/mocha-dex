@@ -344,7 +344,7 @@ contract TradingPool is Ownable, ReentrancyGuard {
         emit Withdraw(tx.origin, _pid, pendingAmount);
     }
 
-    function withdrawAll() public {
+    function harvestAll() public {
         for (uint256 i = 0; i < poolInfo.length; i++) {
             withdraw(i);
         }
